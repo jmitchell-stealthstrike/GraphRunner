@@ -517,8 +517,33 @@ function Invoke-InjectOAuthApp{
     
     [Parameter(Position = 3, Mandatory = $False)]
     [object[]]
-    $Tokens
+    $Tokens,
+    [Parameter(Mandatory=$False)]
+    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
   )
+    if ($Device) {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device
+        }
+    }
+    else {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent
+        }
+    }
+
     if($Tokens){
         Write-Host -ForegroundColor yellow "[*] Using the provided access tokens."
     }
@@ -542,9 +567,10 @@ function Invoke-InjectOAuthApp{
                 }
             }
     }
-    $access_token = $tokens.access_token        
+    $access_token = $tokens.access_token
     $Headers = @{
         Authorization = "Bearer $access_token"
+        "User-Agent" = $UserAgent
     }
 
     # Get Microsoft Graph Object ID
@@ -554,7 +580,7 @@ function Invoke-InjectOAuthApp{
     # Get full service principal list
 
     $initialUrl = "https://graph.microsoft.com/v1.0/servicePrincipals"
-    $headers = @{"Authorization" = "Bearer $access_token"}
+    $headers = @{"Authorization" = "Bearer $access_token"; "User-Agent" = $UserAgent}
 
     # Initialize an array to store all collected data
     $allData = @()
@@ -665,6 +691,7 @@ $resources = @"
         Authorization = "Bearer $access_token"
         "Content-Type" = "application/json"
         "Accept-Encoding" = "gzip, deflate"
+        "User-Agent" = $UserAgent
     }
 
 
@@ -917,12 +944,39 @@ function Invoke-DeleteOAuthApp{
         $Tokens = "",
         [Parameter(Position = 0, Mandatory = $True)]
         [string]
-        $ObjectID = ""
+        $ObjectID = "",
+        [Parameter(Mandatory=$False)]
+        [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
     )
+
+    if ($Device) {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device
+        }
+    }
+    else {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent
+        }
+    }
+
     $accessToken = $tokens.access_token
     $deleteUrl = "https://graph.microsoft.com/v1.0/applications/$ObjectID"
     $headers = @{
         Authorization = "Bearer $accessToken"
+        "User-Agent" = $UserAgent
     }
 
 
@@ -973,8 +1027,33 @@ Function Invoke-GraphOpenInboxFinder{
     $Tokens = "",
     [Parameter(Position = 0, Mandatory = $true)]
     [string]
-    $userlist = ""
+    $userlist = "",
+    [Parameter(Mandatory=$False)]
+    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
     )
+
+    if ($Device) {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device
+        }
+    }
+    else {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent
+        }
+    }
 
     if($tokens){
         $access_token = $tokens.access_token
@@ -1000,7 +1079,7 @@ Function Invoke-GraphOpenInboxFinder{
         $request = ""
         Write-Host -nonewline "$curr_mbx of $count mailboxes checked`r"
         $curr_mbx += 1
-        try { $request = Invoke-WebRequest -UseBasicParsing -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$mbx/mailFolders/Inbox/messages" -Headers @{"Authorization" = "Bearer $access_token"} 
+        try { $request = Invoke-WebRequest -UseBasicParsing -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$mbx/mailFolders/Inbox/messages" -Headers @{"Authorization" = "Bearer $access_token"; "User-Agent" = $UserAgent}
         }catch{
             $err = $_.Exception.Response.StatusCode.Value__
         }
@@ -1593,18 +1672,42 @@ Function Get-Inbox{
     $TotalMessages = "25",
     [Parameter(Position = 3, Mandatory = $false)]
     [string]
-    $OutFile = ""
+    $OutFile = "",
+    [Parameter(Mandatory=$False)]
+    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
     )
+    if ($Device) {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device
+        }
+    }
+    else {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent
+        }
+    }
     if($Tokens){
-            Write-Host -ForegroundColor yellow "[*] Using the provided access tokens."   
+            Write-Host -ForegroundColor yellow "[*] Using the provided access tokens."
     }
     else{
          # Login
-         Write-Host -ForegroundColor yellow "[*] First, you need to login." 
+         Write-Host -ForegroundColor yellow "[*] First, you need to login."
          Write-Host -ForegroundColor yellow "[*] If you already have tokens you can use the -Tokens parameter to pass them to this function."
          while($auth -notlike "Yes"){
                 Write-Host -ForegroundColor cyan "[*] Do you want to authenticate now (yes/no)?"
-                $answer = Read-Host 
+                $answer = Read-Host
                 $answer = $answer.ToLower()
                 if ($answer -eq "yes" -or $answer -eq "y") {
                     Write-Host -ForegroundColor yellow "[*] Running Get-GraphTokens now..."
@@ -1618,11 +1721,11 @@ Function Get-Inbox{
                 }
             }
     }
-    $access_token = $tokens.access_token   
-    [string]$refresh_token = $tokens.refresh_token 
+    $access_token = $tokens.access_token
+    [string]$refresh_token = $tokens.refresh_token
 
     try {
-        $request = Invoke-WebRequest -UseBasicParsing -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userid/mailFolders/Inbox/messages?`$top=$TotalMessages" -Headers @{"Authorization" = "Bearer $access_token"}
+        $request = Invoke-WebRequest -UseBasicParsing -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userid/mailFolders/Inbox/messages?`$top=$TotalMessages" -Headers @{"Authorization" = "Bearer $access_token"; "User-Agent" = $UserAgent}
     } catch {
         $statusCode = $null
         if ($_.Exception.Response) {
@@ -1847,18 +1950,42 @@ function Get-TeamsApps{
     Param (
         [Parameter(Position = 0, Mandatory = $False)]
         [object[]]
-        $Tokens
+        $Tokens,
+        [Parameter(Mandatory=$False)]
+        [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
         )
+        if ($Device) {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device
+            }
+        }
+        else {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent
+            }
+        }
         if(!$Tokens){
             if ($global:tokens){
-                $tokens = $global:tokens   
+                $tokens = $global:tokens
             } else {
                 # Login
-                Write-Host -ForegroundColor yellow "[*] First, you need to login." 
+                Write-Host -ForegroundColor yellow "[*] First, you need to login."
                 Write-Host -ForegroundColor yellow "[*] If you already have tokens you can use the -Tokens parameter to pass them to this function."
                 while($auth -notlike "Yes"){
                     Write-Host -ForegroundColor cyan "[*] Do you want to authenticate now (yes/no)?"
-                    $answer = Read-Host 
+                    $answer = Read-Host
                     $answer = $answer.ToLower()
                     if ($answer -eq "yes" -or $answer -eq "y") {
                         Write-Host -ForegroundColor yellow "[*] Running Get-GraphTokens now..."
@@ -1872,11 +1999,12 @@ function Get-TeamsApps{
                     }
                 }
             }
-        }    
-    $access_token = $tokens.access_token   
+        }
+    $access_token = $tokens.access_token
     $headers = @{
         Authorization = "Bearer $access_token"
         "Content-Type" = "application/json"
+        "User-Agent" = $UserAgent
     }
 
     $teamsResponse = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/v1.0/me/joinedTeams" -Headers $headers
@@ -1909,43 +2037,67 @@ function Get-TeamsApps{
 function Get-TeamsChannels{
     <#
     .SYNOPSIS
-        This module enumerates all accessible teams and the channels a user has access to. 
+        This module enumerates all accessible teams and the channels a user has access to.
         Author: Matt Eidelberg (@Tyl0us)
         License: MIT
         Required Dependencies: None
         Optional Dependencies: None
 
     .DESCRIPTION
-        
-        This module enumerates all accessible teams and their channels a user has access to. 
+
+        This module enumerates all accessible teams and their channels a user has access to.
 
 
     .PARAMETER Tokens
 
         Pass the $tokens global variable after authenticating to this parameter
-  
+
     .EXAMPLE
-        
+
         C:\PS> Get-TeamsChannels -Tokens $tokens
         -----------
-        This module enumerates all accessible teams and their channels a user has access to. 
+        This module enumerates all accessible teams and their channels a user has access to.
 
     #>
     Param (
         [Parameter(Position = 0, Mandatory = $False)]
         [object[]]
-        $Tokens
+        $Tokens,
+        [Parameter(Mandatory=$False)]
+        [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
         )
+        if ($Device) {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device
+            }
+        }
+        else {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent
+            }
+        }
         if(!$Tokens){
             if ($global:tokens){
-                $tokens = $global:tokens   
+                $tokens = $global:tokens
             } else {
                 # Login
-                Write-Host -ForegroundColor yellow "[*] First, you need to login." 
+                Write-Host -ForegroundColor yellow "[*] First, you need to login."
                 Write-Host -ForegroundColor yellow "[*] If you already have tokens you can use the -Tokens parameter to pass them to this function."
                 while($auth -notlike "Yes"){
                     Write-Host -ForegroundColor cyan "[*] Do you want to authenticate now (yes/no)?"
-                    $answer = Read-Host 
+                    $answer = Read-Host
                     $answer = $answer.ToLower()
                     if ($answer -eq "yes" -or $answer -eq "y") {
                         Write-Host -ForegroundColor yellow "[*] Running Get-GraphTokens now..."
@@ -1960,17 +2112,18 @@ function Get-TeamsChannels{
                 }
             }
         }
-          
-    $accesstoken = $tokens.access_token   
-    [string]$refreshtoken = $tokens.refresh_token 
+
+    $accesstoken = $tokens.access_token
+    [string]$refreshtoken = $tokens.refresh_token
 
     $scope = "https://outlook.office365.com/connectors/.default openid profile offline_access"
     $grantType = "refresh_token"
 
-    $access_token = $tokens.access_token   
+    $access_token = $tokens.access_token
     $teamsheaders = @{
         Authorization  = "Bearer $access_token"
         "Content-Type" = "application/json"
+        "User-Agent"   = $UserAgent
     }
     $teamsResponse = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/v1.0/me/joinedTeams" -Headers $teamsheaders
     foreach ($team in $teamsResponse.value) {
@@ -2029,18 +2182,42 @@ function Get-ChannelUsersEnum{
         $Channel = "",
         [Parameter(Position = 2, Mandatory = $False)]
         [string]
-        $Teams = ""
+        $Teams = "",
+        [Parameter(Mandatory=$False)]
+        [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
         )
+        if ($Device) {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device
+            }
+        }
+        else {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent
+            }
+        }
         if(!$Tokens){
             if ($global:tokens){
-                $tokens = $global:tokens   
+                $tokens = $global:tokens
             } else {
                 # Login
-                Write-Host -ForegroundColor yellow "[*] First, you need to login." 
+                Write-Host -ForegroundColor yellow "[*] First, you need to login."
                 Write-Host -ForegroundColor yellow "[*] If you already have tokens you can use the -Tokens parameter to pass them to this function."
                 while($auth -notlike "Yes"){
                     Write-Host -ForegroundColor cyan "[*] Do you want to authenticate now (yes/no)?"
-                    $answer = Read-Host 
+                    $answer = Read-Host
                     $answer = $answer.ToLower()
                     if ($answer -eq "yes" -or $answer -eq "y") {
                         Write-Host -ForegroundColor yellow "[*] Running Get-GraphTokens now..."
@@ -2054,21 +2231,21 @@ function Get-ChannelUsersEnum{
                     }
                 }
             }
-        }    
+        }
         $accesstoken = $tokens.access_token
         $channelString = $Channel
-        [string]$refreshtoken = $tokens.refresh_token 
+        [string]$refreshtoken = $tokens.refresh_token
 
         $scope = "https://outlook.office365.com/connectors/.default openid profile offline_access"
         $grantType = "refresh_token"
 
 
         ### addded logic to loop through all teams, to get the teams ID and then the channels and their IDs
-        $access_token = $tokens.access_token   
+        $access_token = $tokens.access_token
         $teamsheaders = @{
             Authorization  = "Bearer $access_token"
             "Content-Type" = "application/json"
-            "User-Agent"   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+            "User-Agent"   = $UserAgent
         }
         $teamsResponse = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/v1.0/me/joinedTeams" -Headers $teamsheaders
         $channelFound = $false
@@ -2161,18 +2338,42 @@ function Get-ChannelEmail{
         $Channel = "",
         [Parameter(Position = 2, Mandatory = $False)]
         [string]
-        $Teams = ""
+        $Teams = "",
+        [Parameter(Mandatory=$False)]
+        [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
         )
+        if ($Device) {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device
+            }
+        }
+        else {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent
+            }
+        }
         if(!$Tokens){
             if ($global:tokens){
-                $tokens = $global:tokens   
+                $tokens = $global:tokens
             } else {
                 # Login
-                Write-Host -ForegroundColor yellow "[*] First, you need to login." 
+                Write-Host -ForegroundColor yellow "[*] First, you need to login."
                 Write-Host -ForegroundColor yellow "[*] If you already have tokens you can use the -Tokens parameter to pass them to this function."
                 while($auth -notlike "Yes"){
                     Write-Host -ForegroundColor cyan "[*] Do you want to authenticate now (yes/no)?"
-                    $answer = Read-Host 
+                    $answer = Read-Host
                     $answer = $answer.ToLower()
                     if ($answer -eq "yes" -or $answer -eq "y") {
                         Write-Host -ForegroundColor yellow "[*] Running Get-GraphTokens now..."
@@ -2186,9 +2387,9 @@ function Get-ChannelEmail{
                     }
                 }
             }
-        }    
-        $accesstoken = $tokens.access_token   
-        [string]$refreshtoken = $tokens.refresh_token 
+        }
+        $accesstoken = $tokens.access_token
+        [string]$refreshtoken = $tokens.refresh_token
 
         $scope = "https://outlook.office365.com/connectors/.default openid profile offline_access"
         $grantType = "refresh_token"
@@ -2225,17 +2426,18 @@ function Get-ChannelEmail{
             "Sec-Ch-Ua-Mobile" = "?0"
             "Authorization"    = "Bearer $token2"
             "Sstoken"          = "$SStoken"
-            "User-Agent"       = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+            "User-Agent"       = $UserAgent
         }
 
         $response3 = Invoke-WebRequest -Uri "https://outlook.office.com/connectors/Manage/AuthorizeUsingToken?client=SkypeSpaces" -Method Get -SessionVariable WebSession -headers $headers
         $url = 'https://outlook.office.com'
         $WebSession.Headers.Clear()
 
-        $access_token = $tokens.access_token   
+        $access_token = $tokens.access_token
         $teamsheaders = @{
             Authorization  = "Bearer $access_token"
             "Content-Type" = "application/json"
+            "User-Agent"   = $UserAgent
         }
 
         $teamsResponse = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/v1.0/me/joinedTeams" -Headers $teamsheaders
@@ -2273,12 +2475,12 @@ function Get-ChannelEmail{
         }
                 $headers2 = @{
                     "Host"       = "outlook.office.com"
-                    "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                    "User-Agent" = $UserAgent
                 }
                 ### Set the cookie Value you needs to be the team Channel ID
                 $Cookie = New-Object System.Net.Cookie
-                $Cookie.Name = "SkypeSpacesTeamId" 
-                $Cookie.Value = "$channelId" 
+                $Cookie.Name = "SkypeSpacesTeamId"
+                $Cookie.Value = "$channelId"
                 $Cookie.Domain = "outlook.office.com"
                 $WebSession.Cookies.Add($Cookie)
 
@@ -2287,7 +2489,7 @@ function Get-ChannelEmail{
                 ###This is where we get a SPECIFIC SkypeSpaceToken that allows us Query the configuration API
                 $headers3 = @{
                     "Authorization" = "Bearer $token3"
-                    "User-Agent"    = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                    "User-Agent"    = $UserAgent
                     "Origin"        = "https://teams.microsoft.com"
 
                 }
@@ -2300,7 +2502,7 @@ function Get-ChannelEmail{
                 Write-Host "Checking Channel for Email Address"
                     $Channelheader = @{
                         "Authorization" = "Bearer $token3"
-                        "User-Agent"    = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                        "User-Agent"    = $UserAgent
                         "Origin"        = "https://teams.microsoft.com"
                         "X-Skypetoken"  = "$skypeToken"
                     }
@@ -2319,7 +2521,7 @@ function Get-ChannelEmail{
                         $PostChannelheader = @{
                             "Authorization" = "Bearer $token3"
                             "X-Skypetoken"  = "$skypeToken"
-                            "User-Agent"    = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                            "User-Agent"    = $UserAgent
                             "Content-Type" = "application/json;charset=UTF-8"
                         }
                         $body = "{`"allowedSenderType`":`"anyone`",`"allowedDomains`":null}"
@@ -2341,7 +2543,7 @@ function Get-ChannelEmail{
                     Write-Host -ForegroundColor Yellow "Changing Email Address Permissions to Anyone"
                     $SetChannelheader = @{
                         "Authorization" = "Bearer $token3"
-                        "User-Agent"    = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                        "User-Agent"    = $UserAgent
                         "Origin"        = "https://teams.microsoft.com"
                         "X-Skypetoken"  = "$skypeToken"
                     }
@@ -2379,18 +2581,42 @@ function Find-ChannelEmails{
     Param (
         [Parameter(Position = 0, Mandatory = $False)]
         [object[]]
-        $Tokens
+        $Tokens,
+        [Parameter(Mandatory=$False)]
+        [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
         )
+        if ($Device) {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device
+            }
+        }
+        else {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent
+            }
+        }
         if(!$Tokens){
             if ($global:tokens){
-                $tokens = $global:tokens   
+                $tokens = $global:tokens
             } else {
                 # Login
-                Write-Host -ForegroundColor yellow "[*] First, you need to login." 
+                Write-Host -ForegroundColor yellow "[*] First, you need to login."
                 Write-Host -ForegroundColor yellow "[*] If you already have tokens you can use the -Tokens parameter to pass them to this function."
                 while($auth -notlike "Yes"){
                     Write-Host -ForegroundColor cyan "[*] Do you want to authenticate now (yes/no)?"
-                    $answer = Read-Host 
+                    $answer = Read-Host
                     $answer = $answer.ToLower()
                     if ($answer -eq "yes" -or $answer -eq "y") {
                         Write-Host -ForegroundColor yellow "[*] Running Get-GraphTokens now..."
@@ -2404,19 +2630,19 @@ function Find-ChannelEmails{
                     }
                 }
             }
-        }    
+        }
         $accesstoken = $tokens.access_token
         $channelString = $Channel
-        [string]$refreshtoken = $tokens.refresh_token 
+        [string]$refreshtoken = $tokens.refresh_token
 
         $scope = "https://outlook.office365.com/connectors/.default openid profile offline_access"
         $grantType = "refresh_token"
 
-        $access_token = $tokens.access_token   
+        $access_token = $tokens.access_token
         $teamsheaders = @{
             Authorization  = "Bearer $access_token"
             "Content-Type" = "application/json"
-            "User-Agent"   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+            "User-Agent"   = $UserAgent
         }
         $teamsResponse = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/v1.0/me/joinedTeams" -Headers $teamsheaders
         foreach ($team in $teamsResponse.value) {
@@ -2468,18 +2694,42 @@ function Get-Webhooks{
     Param (
         [Parameter(Position = 0, Mandatory = $False)]
         [object[]]
-        $Tokens
+        $Tokens,
+        [Parameter(Mandatory=$False)]
+        [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
         )
+        if ($Device) {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device
+            }
+        }
+        else {
+            if ($Browser) {
+                $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+            }
+            else {
+                $UserAgent = Invoke-ForgeUserAgent
+            }
+        }
         if(!$Tokens){
             if ($global:tokens){
-                $tokens = $global:tokens   
+                $tokens = $global:tokens
             } else {
                 # Login
-                Write-Host -ForegroundColor yellow "[*] First, you need to login." 
+                Write-Host -ForegroundColor yellow "[*] First, you need to login."
                 Write-Host -ForegroundColor yellow "[*] If you already have tokens you can use the -Tokens parameter to pass them to this function."
                 while($auth -notlike "Yes"){
                     Write-Host -ForegroundColor cyan "[*] Do you want to authenticate now (yes/no)?"
-                    $answer = Read-Host 
+                    $answer = Read-Host
                     $answer = $answer.ToLower()
                     if ($answer -eq "yes" -or $answer -eq "y") {
                         Write-Host -ForegroundColor yellow "[*] Running Get-GraphTokens now..."
@@ -2494,12 +2744,12 @@ function Get-Webhooks{
                 }
             }
         }
-            $accesstoken = $tokens.access_token   
-            [string]$refreshtoken = $tokens.refresh_token 
-            
+            $accesstoken = $tokens.access_token
+            [string]$refreshtoken = $tokens.refresh_token
+
             $scope = "https://outlook.office365.com/connectors/.default openid profile offline_access"
             $grantType = "refresh_token"
-            
+
             $body = @{
                 client_id           = $clientId
                 scope               = $scope
@@ -2544,17 +2794,18 @@ function Get-Webhooks{
                 "Sec-Ch-Ua-Mobile" = "?0"
                 "Authorization"    = "Bearer $token2"
                 "Sstoken"          = "$SStoken"
-                "User-Agent"       = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                "User-Agent"       = $UserAgent
             }
-            
+
             $response3 = Invoke-WebRequest -Uri "https://outlook.office.com/connectors/Manage/AuthorizeUsingToken?client=SkypeSpaces" -Method Get -SessionVariable WebSession -headers $headers
             $url = 'https://outlook.office.com'
             $WebSession.Headers.Clear()
-            
-            $access_token = $tokens.access_token   
+
+            $access_token = $tokens.access_token
             $teamsheaders = @{
                 Authorization  = "Bearer $access_token"
                 "Content-Type" = "application/json"
+                "User-Agent"   = $UserAgent
             }
             $teamsResponse = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/v1.0/me/joinedTeams" -Headers $teamsheaders
             
@@ -2570,25 +2821,25 @@ function Get-Webhooks{
                    
                     $headers2 = @{
                         "Host"       = "outlook.office.com"
-                        "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                        "User-Agent" = $UserAgent
                     }
-            
+
                     ### Set the cookie Value you needs to be the team Channel ID
                     $Cookie = New-Object System.Net.Cookie
                     $Cookie.Name = "SkypeSpacesTeamId"
                     $Cookie.Value = "$channelId"
                     $Cookie.Domain = "outlook.office.com"
                     $WebSession.Cookies.Add($Cookie)
-            
+
                     $token3 = $response2.access_token
-            
-            
+
+
                     ### This is where we get a SPECIFIC SkypeSpaceToken that allows us Query the configuration API
                     $headers3 = @{
                         "Authorization" = "Bearer $token3"
-                        "User-Agent"    = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                        "User-Agent"    = $UserAgent
                         "Origin"        = "https://teams.microsoft.com"
-            
+
                     }
                     $response6 = Invoke-WebRequest -Uri "https://teams.microsoft.com/api/authsvc/v1.0/authz" -Method POST  -headers $headers3
                     $jsonResponse = $response6.Content | ConvertFrom-Json
@@ -2617,7 +2868,7 @@ function Get-Webhooks{
             
                     $headers4 = @{
                         "Host"       = "outlook.office.com"
-                        "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                        "User-Agent" = $UserAgent
                     }
 
                     ### Need to get the MailBox ID client  
@@ -2734,8 +2985,32 @@ function Create-Webhook{
             $Name = "",
             [Parameter(Position = 4, Mandatory = $True)]
             [ValidateSet("IncomingWebhook","Jira","Jenkins","AzureDevOps")]
-            [String]$ConnectorType
+            [String]$ConnectorType,
+            [Parameter(Mandatory=$False)]
+            [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+            [Parameter(Mandatory=$False)]
+            [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+            [String]$Device,
+            [Parameter(Mandatory=$False)]
+            [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+            [String]$Browser
             )
+            if ($Device) {
+                if ($Browser) {
+                    $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+                }
+                else {
+                    $UserAgent = Invoke-ForgeUserAgent -Device $Device
+                }
+            }
+            else {
+                if ($Browser) {
+                    $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+                }
+                else {
+                    $UserAgent = Invoke-ForgeUserAgent
+                }
+            }
             if(!$Tokens){
                 if ($global:tokens){
                     $tokens = $global:tokens   
@@ -2831,7 +3106,7 @@ function Create-Webhook{
             "Sec-Ch-Ua-Mobile" = "?0"
             "Authorization"    = "Bearer $token2"
             "Sstoken"          = "$SStoken"
-            "User-Agent"       = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+            "User-Agent"       = $UserAgent
         }
 
         $response3 = Invoke-WebRequest -Uri "https://outlook.office.com/connectors/Manage/AuthorizeUsingToken?client=SkypeSpaces" -Method Get -SessionVariable WebSession -headers $headers
@@ -2839,10 +3114,11 @@ function Create-Webhook{
         $WebSession.Headers.Clear()
 
         ### addded logic to loop through all teams, to get the teams ID and then the channels and their IDs
-        $access_token = $tokens.access_token   
+        $access_token = $tokens.access_token
         $teamsheaders = @{
             Authorization  = "Bearer $access_token"
             "Content-Type" = "application/json"
+            "User-Agent"   = $UserAgent
         }
         $teamsResponse = Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/v1.0/me/joinedTeams" -Headers $teamsheaders
         foreach ($team in $teamsResponse.value) {
@@ -2884,7 +3160,7 @@ function Create-Webhook{
 
                         $headers2 = @{
                             "Host"       = "outlook.office.com"
-                            "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                            "User-Agent" = $UserAgent
                         }
                         ### Set the cookie Value you needs to be the team Channel ID
                         $Cookie = New-Object System.Net.Cookie
@@ -2898,7 +3174,7 @@ function Create-Webhook{
                         ### This is where we get a SkypeSpaceToken that allows us to query the configuration API
                         $headers3 = @{
                             "Authorization" = "Bearer $token3"
-                            "User-Agent"    = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                            "User-Agent"    = $UserAgent
                             "Origin"        = "https://teams.microsoft.com"
 
                         }
@@ -2929,7 +3205,7 @@ function Create-Webhook{
 
                         $headers4 = @{
                             "Host"       = "outlook.office.com"
-                            "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                            "User-Agent" = $UserAgent
                         }
                         $WHresponse = Invoke-WebRequest -Uri "https://outlook.office.com/connectors/$connectorurl/Manage/New?MailboxAddress=$teamId%40$tenantid&client=SkypeSpaces&SSThread=$channelId&HostName=teams.microsoft.com&culture=en-us&ssApiHost=amer.ng.msg.teams.microsoft.com&iframe=true&SSTheme=default" -Method Get -WebSession $WebSession -headers $headers4 
                         $pattern = '<input\s+name="__RequestVerificationToken"\s+type="hidden"\s+value="([^"]+)"'
@@ -3019,7 +3295,7 @@ function Create-Webhook{
                     
                         $Creationheaders = @{
                             "Host"       = "outlook.office.com"
-                            "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.123 Safari/537.36"
+                            "User-Agent" = $UserAgent
                         }
                         $LF = "`r`n";
                         $boundary = "----WebKitFormBoundary$randomString"
@@ -6607,19 +6883,43 @@ function Invoke-InviteGuest{
 
     [Parameter(Position = 5, Mandatory = $False)]
     [object[]]
-    $Tokens = ""
+    $Tokens = "",
+    [Parameter(Mandatory=$False)]
+    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
 
     )
+    if ($Device) {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device
+        }
+    }
+    else {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent
+        }
+    }
     if($Tokens){
         Write-Host -ForegroundColor yellow "[*] Using the provided access tokens."
     }
     else{
          # Login
-         Write-Host -ForegroundColor yellow "[*] First, you need to login." 
+         Write-Host -ForegroundColor yellow "[*] First, you need to login."
          Write-Host -ForegroundColor yellow "[*] If you already have tokens you can use the -Tokens parameter to pass them to this function."
          while($auth -notlike "Yes"){
                 Write-Host -ForegroundColor cyan "[*] Do you want to authenticate now (yes/no)?"
-                $answer = Read-Host 
+                $answer = Read-Host
                 $answer = $answer.ToLower()
                 if ($answer -eq "yes" -or $answer -eq "y") {
                     Write-Host -ForegroundColor yellow "[*] Running Get-GraphTokens now..."
@@ -6633,9 +6933,9 @@ function Invoke-InviteGuest{
                 }
             }
     }
-    $accesstoken = $tokens.access_token   
-    [string]$refreshToken = $tokens.refresh_token 
-    $headers = @{"Authorization" = "Bearer $accesstoken"}
+    $accesstoken = $tokens.access_token
+    [string]$refreshToken = $tokens.refresh_token
+    $headers = @{"Authorization" = "Bearer $accesstoken"; "User-Agent" = $UserAgent}
     # Construct the Graph API endpoint
     $graphApiUrl = "https://graph.microsoft.com/v1.0"
     $orginfo = Invoke-RestMethod -Uri "$graphApiUrl/organization" -Headers $headers
@@ -7804,9 +8104,33 @@ Function Invoke-SearchMailbox{
     [switch]
     $GraphRun,
     [switch]
-    $PageResults
+    $PageResults,
+    [Parameter(Mandatory=$False)]
+    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
     )
 
+    if ($Device) {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device
+        }
+    }
+    else {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent
+        }
+    }
 
     if($Tokens){
         if(!$GraphRun){
@@ -7842,6 +8166,7 @@ Function Invoke-SearchMailbox{
     $headers = @{
     "Authorization" = "Bearer $access_token"
     "Content-Type" = "application/json"
+    "User-Agent" = $UserAgent
     }
 
     function Get-MailboxSearchHeaderValue {
@@ -8346,8 +8671,33 @@ function Get-SharePointSiteURLs{
         $BatchSize = 200,
         [Parameter(Position = 2, Mandatory = $False)]
         [int]
-        $MaxSites = 0
+        $MaxSites = 0,
+        [Parameter(Mandatory=$False)]
+        [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
     )
+
+    if ($Device) {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent -Device $Device
+        }
+    }
+    else {
+        if ($Browser) {
+            $UserAgent = Invoke-ForgeUserAgent -Browser $Browser
+        }
+        else {
+            $UserAgent = Invoke-ForgeUserAgent
+        }
+    }
 
     if($Tokens){
         Write-Host -ForegroundColor yellow "[*] Using the provided access tokens."
@@ -8391,6 +8741,7 @@ function Get-SharePointSiteURLs{
 
     $headers = @{
         "Authorization" = "Bearer $accessToken"
+        "User-Agent" = $UserAgent
     }
 
     Write-Host -ForegroundColor yellow "[*] Now getting SharePoint site URLs..."
